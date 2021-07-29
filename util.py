@@ -772,4 +772,28 @@ def gridSearch_models(df, lista,lags,Eto,lags_eto,variavel_Alvo):
   }
 
 
+  params= {
+    'DecisionTreeRegressor':{"splitter":["best"],
+            "max_depth" : [1,3,5,8],
+            "min_samples_leaf":[1,2,3,4],
+            'n_estimators': [100, 500, 1000]
+            },
+    'RandomForestRegressor':  {
+      "max_depth" : [1,3,5,8],
+     "min_samples_leaf":[1,2,3,4],
+     'min_samples_split': [8, 10, 12],
+      'n_estimators': [100, 500, 1000]
+      },
 
+    'XGBRegressor':{
+        'gamma': [0.5, 1, 1.5, 2, 5],
+        'subsample': [0.6, 0.8, 1.0],
+        'max_depth': [3, 4, 5],
+        }
+
+    }
+
+  for name in models.keys():
+    est = models[name]
+    est_params = params[name]
+ return best_model,bestparamet
