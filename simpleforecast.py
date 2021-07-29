@@ -90,12 +90,12 @@ def model_selection(df,forecasting_variable,selected_variables, models=[RandomFo
             if hyperparameters[i] !=[]:
                 selected_model = util.arvores(df,[selected_variables,manual_list],forecasting_variable,hyperparameters[i])
             else:
-                selected_model = util.florestasAleatorias(df,[selected_variables,manual_list],forecasting_variable)
+                selected_model = util.arvores(df,[selected_variables,manual_list],forecasting_variable)
         elif models[i]==XGBRegressor:
             if hyperparameters[i] !=[]:
                 selected_model = util.xgbs(df,[selected_variables,manual_list],forecasting_variable,hyperparameters[i])
             else:
-                selected_model = util.florestasAleatorias(df,[selected_variables,manual_list],forecasting_variable)
+                selected_model = util.xgbs(df,[selected_variables,manual_list],forecasting_variable)
 
     return selected_model
 def finetunnig(data, model, hyperparameters):

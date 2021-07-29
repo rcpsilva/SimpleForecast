@@ -354,26 +354,33 @@ def get_column(df,Target):
   return {"variable_list":lista,"Target":list_Target}
 
 
-def arvore(df,lista, lags, Eto, lags_eto,variavel_Alvo,hyperparameters=[]):
+
+
+# Models
+def arvore(df,list, lags, Target, lags_Target,hyperparameters=[]):
+  """ Receives multivariate time series dataframe and returns a error metric of selected model
+    
+        Args:
+             df: Data frame with multivariate time series data
+             list: List of variables of interest for dataframe construction
+             lags: List of lags of interest for dataframe construction
+             Target: List containing target variable
+             lags_Target: List of lags for target variable
+             hyperparameters:Parameter whose value is used to control the learning process
+
+        Returns:
+            list: List of variables of interest for dataframe construction
+            lags: List of lags of interest for dataframe construction
+            Target: List containing target variable
+            lags_Target: List of lags for target variable
+            rmse: Is the measure that calculates the "root mean square" of the errors between the observed (actual) values ​​and the predictions (assumptions)
+            
+  """
   
-  x1_train, x1_test,y1_train, y1_test = train_test(df, lista,lags,Eto,lags_eto,variavel_Alvo)
+  x1_train, x1_test,y1_train, y1_test = get_train_test_sets(df, list,lags,Target,lags_Target)
 
   model = DecisionTreeRegressor(random_state = 42)
   
-  # Ajuste por grid
-  # model = DecisionTreeRegressor(random_state=42,max_depth= 5, max_features='log2', max_leaf_nodes= 10, min_samples_leaf=1, min_weight_fraction_leaf= 0.1, splitter='best')
-  # 1 Dia
-  #model = DecisionTreeRegressor(random_state=42,max_depth= 5, max_features='auto', max_leaf_nodes= None, min_samples_leaf=1, min_weight_fraction_leaf= 0.1, splitter='best')
-  # model = DecisionTreeRegressor(random_state=42,max_depth= 5, max_features='auto', max_leaf_nodes= None, min_samples_leaf=1, min_weight_fraction_leaf= 0.1, splitter='best')
-  # 3 Dias
-  # model = DecisionTreeRegressor(random_state=42,max_depth= 5, max_features='auto', max_leaf_nodes= None, min_samples_leaf=1, min_weight_fraction_leaf= 0.1, splitter='best')
-  # model = DecisionTreeRegressor(random_state=42,max_depth= 5, max_features='auto', max_leaf_nodes= None, min_samples_leaf=1, min_weight_fraction_leaf= 0.1, splitter='best')
-  #7 Dias
-  # model = DecisionTreeRegressor(random_state=42,max_depth= 5, max_features='auto', max_leaf_nodes= 10, min_samples_leaf=1, min_weight_fraction_leaf= 0.1, splitter='best')
-  # model = DecisionTreeRegressor(random_state=42,max_depth= 5, max_features='log2', max_leaf_nodes= 10, min_samples_leaf=1, min_weight_fraction_leaf= 0.1, splitter='best')
-  #10 Dias
-  # model = DecisionTreeRegressor(random_state=42,max_depth= 5, max_features='auto', max_leaf_nodes= None, min_samples_leaf=1, min_weight_fraction_leaf= 0.1, splitter='best')
-  # model = DecisionTreeRegressor(random_state=42,max_depth= 5, max_features='log2', max_leaf_nodes= 10, min_samples_leaf=1, min_weight_fraction_leaf= 0.1, splitter='best')
   model.fit(x1_train, y1_train)                 
   print("------------------")
   print("Arvore")
@@ -390,10 +397,25 @@ def arvore(df,lista, lags, Eto, lags_eto,variavel_Alvo,hyperparameters=[]):
   # pyplot.legend(bbox_to_anchor=(0,1.02,1,0.2), loc="lower left",
   #               mode="expand", borderaxespad=0, ncol=3)
   # pyplot.show()
-  return lista,lags,Eto,lags_eto,round(rmse,2)
+  return list,lags,Target,lags_Target,round(rmse,2)
 
-def arvores(df,arvore_parametros,variavel_Alvo):
-  lista_colunas=["lista","lista_lags",variavel_Alvo,"lags_Target","rmse"]
+def arvores(df,arvore_parametros,Target):
+  """ Receives a list of lists with selected variables and corresponding steps forward returning error metrics for input lists
+    
+        Args:
+             df: Data frame with multivariate time series data
+             list: List of variables of interest for dataframe construction
+             lags: List of lags of interest for dataframe construction
+             Target: List containing target variable
+             lags_Target: List of lags for target variable
+             hyperparameters:Parameter whose value is used to control the learning process
+
+        Returns:
+            tb: dataframe with input data and error metrics
+           
+            
+  """
+  lista_colunas=["lista","lista_lags",Target,"lags_Target","rmse"]
   tb = pd.DataFrame(columns=lista_colunas)
   print("Arvores")
   for x in range(len(arvore_parametros)):
@@ -401,7 +423,7 @@ def arvores(df,arvore_parametros,variavel_Alvo):
  
     tb.loc[x,'lista']=a[0]
     tb.loc[x,'lista_lags']=a[1]
-    tb.loc[x,variavel_Alvo]=a[2]
+    tb.loc[x,Target]=a[2]
     tb.loc[x,'lags_Target']=a[3]
     tb.loc[x,"rmse"]=a[4]
 
@@ -410,20 +432,34 @@ def arvores(df,arvore_parametros,variavel_Alvo):
   return tb
 
 
-  
-def florestaAleatoria(df,lista, lags, Eto, lags_eto,variavel_Alvo,hyperparameters=[]):
-  x1_train, x1_test,y1_train, y1_test = train_test(df, lista,lags,Eto,lags_eto,variavel_Alvo)
+
+def florestaAleatoria(df,list, lags, Target, lags_Target):
+  """ Receives multivariate time series dataframe and returns a error metric of selected model
+    
+        Args:
+             df: Data frame with multivariate time series data
+             list: List of variables of interest for dataframe construction
+             lags: List of lags of interest for dataframe construction
+             Target: List containing target variable
+             lags_Target: List of lags for target variable
+             hyperparameters:Parameter whose value is used to control the learning process
+
+        Returns:
+            list: List of variables of interest for dataframe construction
+            lags: List of lags of interest for dataframe construction
+            Target: List containing target variable
+            lags_Target: List of lags for target variable
+            rmse: Is the measure that calculates the "root mean square" of the errors between the observed (actual) values ​​and the predictions (assumptions)
+            
+  """
+  x1_train, x1_test,y1_train, y1_test = get_train_test_sets(df, list,lags,Target,lags_Target)
   model = RandomForestRegressor(random_state = 42 ,bootstrap=True, max_depth= 8, max_features= 5, min_samples_leaf= 4, min_samples_split= 8, n_estimators=1000)
-
-
   model.fit(x1_train, y1_train)
   print("------------------")
   print("floresta")
   y1_pred = model.predict(x1_test)
   mse = mean_squared_error(y1_test, y1_pred)
   std_mse=np.std(np.sqrt((y1_pred - y1_test)**2))
-  
-  print("std_mse",round(std_mse,2))
   rmse = math.sqrt(mse)
   print("Erro medio absoluto----",round(mean_absolute_error(y1_test, y1_pred),2))
   pyplot.plot(np.arange(y1_test.shape[0]),y1_test, label='Expected Random forests ')
@@ -432,35 +468,68 @@ def florestaAleatoria(df,lista, lags, Eto, lags_eto,variavel_Alvo,hyperparameter
                 mode="expand", borderaxespad=0, ncol=3)
   pyplot.show()
     
-  return lista,lags,Eto,lags_eto,round(rmse,2),
+  return lista,lags,Eto,lags_eto,round(rmse,2),"RandomForestRegressor"
 
-def florestasAleatorias(df,arvore_parametros,variavel_Alvo):
-  lista_colunas=["lista","lista_lags",variavel_Alvo,"lags_Target","rmse"]
+def florestasAleatorias(df,arvore_parametros,Target):
+  """ Receives a list of lists with selected variables and corresponding steps forward returning error metrics for input lists
+    
+        Args:
+             df: Data frame with multivariate time series data
+             list: List of variables of interest for dataframe construction
+             lags: List of lags of interest for dataframe construction
+             Target: List containing target variable
+             lags_Target: List of lags for target variable
+             hyperparameters:Parameter whose value is used to control the learning process
+
+        Returns:
+            tb: dataframe with input data and error metrics
+           
+            
+  """
+  lista_colunas=["lista","lista_lags",Target,"lags_Target","rmse"]
   tb = pd.DataFrame(columns=lista_colunas)
   print("florestass")
   for x in range(len(arvore_parametros)):
     a=florestaAleatoria(df,arvore_parametros[x][0],arvore_parametros[x][1],arvore_parametros[x][2],arvore_parametros[x][3],variavel_Alvo)
- 
+    
+    tb.loc[x,'model']=a[5]
     tb.loc[x,'lista']=a[0]
     tb.loc[x,'lista_lags']=a[1]
-    tb.loc[x,variavel_Alvo]=a[2]
-    tb.loc[x,'lags_Target']=a[3]
+    tb.loc[x,'Eto']=a[2]
+    tb.loc[x,'lags_eto']=a[3]
     tb.loc[x,"rmse"]=a[4]
-    
+    joblib.dump(a,"floresta")
 
   print(tb)
 
   return tb
 
 
-   
-  
 
-def xgb(df,lista, lags, Eto, lags_eto,variavel_Alvo,hyperparameters=[]):
+
+def xgb(df,list, lags, Target, lags_Target):
+  """ Receives multivariate time series dataframe and returns a error metric of selected model
+    
+        Args:
+             df: Data frame with multivariate time series data
+             list: List of variables of interest for dataframe construction
+             lags: List of lags of interest for dataframe construction
+             Target: List containing target variable
+             lags_Target: List of lags for target variable
+             hyperparameters:Parameter whose value is used to control the learning process
+
+        Returns:
+            list: List of variables of interest for dataframe construction
+            lags: List of lags of interest for dataframe construction
+            Target: List containing target variable
+            lags_Target: List of lags for target variable
+            rmse: Is the measure that calculates the "root mean square" of the errors between the observed (actual) values ​​and the predictions (assumptions)
+            
+  """
   
-  x1_train, x1_test,y1_train, y1_test = train_test(df, lista,lags,Eto,lags_eto,variavel_Alvo)
- 
-  model = XGBRegressor(hyperparameters)
+  x1_train, x1_test,y1_train, y1_test = get_train_test_sets(df, list,lags,Target,lags_Target)
+  
+  model = XGBRegressor( random_state = 42,colsample_bytree= 1, gamma= 5, learning_rate= 0.05, max_depth= 3, min_child_weight= 1, subsample= 1)
   model.fit(x1_train, y1_train)
   print("------------------")
   print("xgb")
@@ -477,25 +546,230 @@ def xgb(df,lista, lags, Eto, lags_eto,variavel_Alvo,hyperparameters=[]):
   #               mode="expand", borderaxespad=0, ncol=3)
   # pyplot.show()
     
-  return lista,lags,Eto,lags_eto,round(rmse,2)
+  return list,lags,Target,lags_Target,round(rmse,2),"XGBRegressor"
 
-def xgbs(df,arvore_parametros,variavel_Alvo):
+def xgbs(df,arvore_parametros,Target):
+  """ Receives a list of lists with selected variables and corresponding steps forward returning error metrics for input lists
+    
+        Args:
+             df: Data frame with multivariate time series data
+             list: List of variables of interest for dataframe construction
+             lags: List of lags of interest for dataframe construction
+             Target: List containing target variable
+             lags_Target: List of lags for target variable
+             hyperparameters:Parameter whose value is used to control the learning process
 
-  lista_colunas=["lista","lista_lags",variavel_Alvo,"lags_Target","rmse"]
+        Returns:
+            tb: dataframe with input data and error metrics
+           
+            
+  """
+  lista_colunas=["lista","lista_lags",Target,"lags_Target","rmse"]
   tb = pd.DataFrame(columns=lista_colunas)
   print("xgbs")
   for x in range(len(arvore_parametros)):
     a=xgb(df,arvore_parametros[x][0],arvore_parametros[x][1],arvore_parametros[x][2],arvore_parametros[x][3],variavel_Alvo)
- 
+    
+    tb.loc[x,'model']=a[5]
     tb.loc[x,'lista']=a[0]
     tb.loc[x,'lista_lags']=a[1]
-    tb.loc[x,variavel_Alvo]=a[2]
+    tb.loc[x,Target]=a[2]
     tb.loc[x,'lags_Target']=a[3]
     tb.loc[x,"rmse"]=a[4]
- 
+
   print(tb)
 
   return tb
+
+
+
+  #Grid
+
+  
+def gridSearchF(df, list,lags,Target,lags_Target):
+  """ Performs a grid search on the manually specified subset of the target algorithm's hyperparameter space and returns the best hyperparameters
+    
+        Args:
+             df: Data frame with multivariate time series data
+             List:List of variables of interest for dataframe construction
+             Target:List containing target variable
+             steps_ahead: Forescating horizon.By definition 30 steps forward
+             lags: List of lags of interest for dataframe construction
+             lags_Target: List of lags for target variable
+             List: List of variables of interest for dataframe construction
+        Returns:
+            grid_search.best_params_: Parameter setting that gave the best results on the hold out data.
+            
+            
+            
+            
+ """
+  x1_train, x1_test,y1_train, y1_test = get_train_test_sets(df, list,lags,Target,lags_Target)
+   # Create the parameter grid based on the results of random search 
+  param_grid = {
+      'bootstrap': [True],
+      'max_depth': [10,80, 90, 100, 110],
+      'max_features': [2, 3],
+      'min_samples_leaf': [3, 4, 5],
+      'min_samples_split': [8, 10, 12],
+      'n_estimators': [100, 200, 300, 1000]
+  }
+
+  # Create a base model
+  rf = RandomForestRegressor(random_state = 42)
+
+  # Instantiate the grid search model
+  grid_search = GridSearchCV(estimator = rf, param_grid = param_grid, 
+                            cv = 3, n_jobs = -1, verbose = 2, return_train_score=True)
+
+  print(" -----------------grid_search.fit--------------")
+ 
+  start_time=timer(None)
+
+  grid_search.fit(x1_train, y1_train);
+
+  timer(start_time)  
+  
+    
+  return grid_search.best_params_
+
+def gridSearchFs(df,parametros,Target):
+
+  lista_colunas=["gridSearch"]
+  tb = pd.DataFrame(columns=lista_colunas)
+  
+  print("gridSearchFs")
+  for x in range(len(parametros)):
+    a=gridSearchF(df,parametros[x][0],parametros[x][1],parametros[x][2],parametros[x][3],Target)
+ 
+    tb.loc[x,'Best_ramdon_hyperparameter']=[a]
+  print('---------------------------------------------------------------------------------')
+  
+
+  return tb
+
+# gridSearch Arvore
+
+def gridSearchA(df, list,lags,Target,lags_Target):
+  """ Performs a grid search on the manually specified subset of the target algorithm's hyperparameter space and returns the best hyperparameters
+    
+        Args:
+             df: Data frame with multivariate time series data
+             List:List of variables of interest for dataframe construction
+             Target:List containing target variable
+             steps_ahead: Forescating horizon.By definition 30 steps forward
+             lags: List of lags of interest for dataframe construction
+             lags_Target: List of lags for target variable
+             List: List of variables of interest for dataframe construction
+        Returns:
+            grid_search.best_params_: Parameter setting that gave the best results on the hold out data.  
+ """
+  tb = pd.DataFrame()
+  x1_train, x1_test,y1_train, y1_test = get_train_test_sets(df, list,lags,Target,lags_Target)
+   # Create the parameter grid based on the results of random search 
+  
+  param_grid={"splitter":["best","random"],
+            "max_depth" : [1,3,5,7,9,11,12],
+            "min_samples_leaf":[1,2,3,4,5,6,7,8,9,10],
+            "min_weight_fraction_leaf":[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9],
+            "max_features":["auto","log2","sqrt",None],
+            "max_leaf_nodes":[None,10,20,30,40,50,60,70,80,90] 
+            }
+ 
+  # Create a base model
+  rf = DecisionTreeRegressor(random_state = 42)
+
+  # Instantiate the grid search model
+  grid_search=GridSearchCV(rf,param_grid=param_grid,scoring='neg_mean_squared_error',cv=3,verbose=3,n_jobs = -1,return_train_score=True)
+  
+
+  print(" -----------------grid_search.fit--------------")
+  start_time=timer(None)
+
+  grid_search.fit(x1_train, y1_train);
+
+  timer(start_time)  
+
+  return grid_search.best_params_
+
+def gridSearchAs(df,parametros,Target):
+
+  print('---------------------------------------------------------------------------------')
+  
+  for x in range(len(parametros)):
+    a=gridSearchA(df,parametros[x][0],parametros[x][1],parametros[x][2],parametros[x][3],Target)
+    
+    print(x,"Best_hyperparameter_Arvores", a)
+   
+  print('---------------------------------------------------------------------------------')
+  
+
+  return tb
+
+def gridSearchXgb(df, lista,lags,Eto,lags_eto,variavel_Alvo):
+  """ Performs a grid search on the manually specified subset of the target algorithm's hyperparameter space and returns the best hyperparameters
+    
+        Args:
+             df: Data frame with multivariate time series data
+             List:List of variables of interest for dataframe construction
+             Target:List containing target variable
+             steps_ahead: Forescating horizon.By definition 30 steps forward
+             lags: List of lags of interest for dataframe construction
+             lags_Target: List of lags for target variable
+             List: List of variables of interest for dataframe construction
+        Returns:
+            grid_search.best_params_: Parameter setting that gave the best results on the hold out data.  
+ """
+  x1_train, x1_test,y1_train, y1_test = train_test(df, lista,lags,Eto,lags_eto,variavel_Alvo)
+   # Create the parameter grid based on the results of random search 
+  param_grid = {
+        'min_child_weight': [1, 5, 10],
+        # Define a soma mínima dos pesos de todas as observações exigidas em uma criança.
+        # Isso é semelhante a min_child_leaf no GBM, mas não exatamente. Isso se refere à “soma dos pesos” mínimas das observações, enquanto o GBM tem “número mínimo de observações”.
+        # Usado para controlar o sobreajuste.
+        'gamma': [0.5, 1, 1.5, 2, 5],
+        # Um nó é dividido apenas quando a divisão resultante dá uma redução positiva na função de perda.
+        # Gama especifica a redução de perda mínima necessária para fazer uma divisão.
+        'subsample': [0.6, 0.8, 1.0],
+        'colsample_bytree': [0.6, 0.8, 1.0],
+        # Semelhante a max_features em GBM. Denota a fração de colunas a serem amostras 
+        # aleatoriamente para cada árvore.Valores típicos: 0,5-1
+        'max_depth': [3, 4, 5],
+        # booster [default = gbtree]
+        # Selecione o tipo de modelo a ser executado em cada iteração. Possui 2 opções:
+        # gbtree: modelos baseados em árvore
+        # gblinear: modelos lineares
+        }
+
+  # Create a base model
+  rf = XGBRegressor(random_state = 42)
+
+  # Instantiate the grid search model
+  grid_search = GridSearchCV(estimator = rf, param_grid = param_grid, 
+                            cv = 3, n_jobs = -1, verbose = 2, return_train_score=True)
+
+  print(" -----------------grid_search___Xgb.fit--------------")
+  grid_search.fit(x1_train, y1_train);
+    
+  return grid_search.best_params_
+
+def gridSearchXgbs(df,parametros,variavel_Alvo):
+  tb = pd.DataFrame()
+  for x in range(len(parametros)):
+    a=gridSearchXgb(df,parametros[x][0],parametros[x][1],parametros[x][2],parametros[x][3],variavel_Alvo)
+ 
+    tb.loc[x,'Best_hyperparameter_Xgb']=[a]
+    print(x,"--->",a)
+
+  print('---------------------------------------------------------------------------------')
+  return tb
+
+def gridSearch_models(df, lista,lags,Eto,lags_eto,variavel_Alvo):
+  models = {
+    'DecisionTreeRegressor': DecisionTreeRegressor(),
+    'RandomForestRegressor': RandomForestRegressor(),
+    'XGBRegressor': XGBRegressor()
+  }
 
 
 
