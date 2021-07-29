@@ -446,7 +446,7 @@ def florestasAleatorias(df,arvore_parametros,variavel_Alvo):
     tb.loc[x,variavel_Alvo]=a[2]
     tb.loc[x,'lags_Target']=a[3]
     tb.loc[x,"rmse"]=a[4]
-    joblib.dump(a,"floresta")
+    
 
   print(tb)
 
@@ -480,6 +480,7 @@ def xgb(df,lista, lags, Eto, lags_eto,variavel_Alvo,hyperparameters=[]):
   return lista,lags,Eto,lags_eto,round(rmse,2)
 
 def xgbs(df,arvore_parametros,variavel_Alvo):
+
   lista_colunas=["lista","lista_lags",variavel_Alvo,"lags_Target","rmse"]
   tb = pd.DataFrame(columns=lista_colunas)
   print("xgbs")
@@ -491,7 +492,10 @@ def xgbs(df,arvore_parametros,variavel_Alvo):
     tb.loc[x,variavel_Alvo]=a[2]
     tb.loc[x,'lags_Target']=a[3]
     tb.loc[x,"rmse"]=a[4]
-
+ 
   print(tb)
 
   return tb
+
+
+
