@@ -10,6 +10,7 @@ from matplotlib import pyplot
 from sklearn.model_selection import RandomizedSearchCV
 from pprint import pprint
 from sklearn.model_selection import GridSearchCV
+from collections import OrderedDict
 import joblib
 
 
@@ -250,7 +251,7 @@ def get_train_test_sets(df, list,lags,Target,lags_Target,data_Itest= '2013-01-01
   y1_train = y1_train[tabela[1]:]
  
            
-  return x1_train, x1_test,y1_train, y1_test
+  return x1_train.values, x1_test.values,y1_train, y1_test
 
 def get_x2(df,list,lags,Target,lags_Target):
   """ Keeps the "Data" index and returns a DataFrame object with shifted index values.
@@ -302,8 +303,8 @@ def get_x2(df,list,lags,Target,lags_Target):
   return dataX,max_lag,list,lags,Target,lags_Target;
 
 
-def get_x30(df,List, Target,steps_ahead=30):
-  """ Keeps the "Data" index and returns a DataFrame object with index values ​​shifted by 30 time units
+def displace(df,variables_of_interest, Target,steps_ahead=30):
+  """ Keeps the "Data" index and returns a DataFrame object with index values ​​shifted by steps_ahead time units
     
         Args:
              df: Data frame with multivariate time series data
@@ -314,18 +315,15 @@ def get_x30(df,List, Target,steps_ahead=30):
 
         Returns:
             dataX: Dataframe with shifted multivariate by 30 time units
-            max_lag: Maximum number of lags in the new dataframe
-            List: List of variables of interest for dataframe construction
-            lags: List of lags of interest for dataframe construction
-            lags_Target: List of lags for target variable
+            
             
  """
   ix = []
   idx =  [i for i in np.arange(1, steps_ahead+1)]
-  for i in range(len(List)):
+  for i in range(len(variables_of_interest)):
     ix.append(idx)
 
-  dataX = get_x2(df, List, ix, Target, idx)
+  dataX = get_x2(df, variables_of_interest, ix, Target, idx)
   return dataX
 def get_column(df,Target):
   """ Keeps the "Data" index and returns a DataFrame object with shifted index values.
@@ -398,7 +396,25 @@ def arvore(df,list, lags, Target, lags_Target,hyperparameters=[]):
   #               mode="expand", borderaxespad=0, ncol=3)
   # pyplot.show()
   return list,lags,Target,lags_Target,round(rmse,2)
-
+# arvore_parametros=[
+#                     [[['J']],[[0]],['Eto'],[1,2,3]],
+#                     [[['Tmax', 'I']],[[1],[1]],['Eto'],[1,2,3]],
+#                     [[['J', 'I']],[[0],[1]],['Eto'],[1,2,3]],
+#                     [[[ "Tmax","J","I"]],[[1],[0],[1]],['Eto'],[1,2,3]],
+#                     [[[ "Tmax","J","Tmean"]],[[1],[0],[1]],['Eto'],[1,2,3]],
+#                     [[["J"]],[[0]],['Eto'],[3]],
+#                     [[[ "J","Tmax"]],[[0],[3]],['Eto'],[3]],
+#                     [[["J","Tmax","I"]],[[0],[3],[3]],['Eto'],[3]],
+#                     [[["Tmax"]],[[3]],['Eto'],[3]],
+#                     [[["J"]],[[0]],['Eto'],[7]],
+#                     [[[ "J","Tmax"]],[[0],[7]],['Eto'],[7]],
+#                     [[["J","Tmax","I"]],[[0],[7],[7]],['Eto'],[7]],
+#                     [[["Tmax"]],[[7]],['Eto'],[7]],
+#                     [[["J"]],[[0]],['Eto'],[10]],
+#                     [[[ "J","Tmax"]],[[0],[10]],['Eto'],[10]],
+#                     [[[ "J","Tmax","I"]],[[0],[10],[10]],['Eto'],[10]],
+#                     [[["Tmax"]],[[10]],['Eto'],[10]]
+#                    ]
 def arvores(df,arvore_parametros,Target):
   """ Receives a list of lists with selected variables and corresponding steps forward returning error metrics for input lists
     
@@ -706,7 +722,7 @@ def gridSearchAs(df,parametros,Target):
 
   return tb
 
-def gridSearchXgb(df, lista,lags,Eto,lags_eto,variavel_Alvo):
+def gridSearchXgb(df, list,lags,Target,lags_Target):
   """ Performs a grid search on the manually specified subset of the target algorithm's hyperparameter space and returns the best hyperparameters
     
         Args:
@@ -720,7 +736,7 @@ def gridSearchXgb(df, lista,lags,Eto,lags_eto,variavel_Alvo):
         Returns:
             grid_search.best_params_: Parameter setting that gave the best results on the hold out data.  
  """
-  x1_train, x1_test,y1_train, y1_test = train_test(df, lista,lags,Eto,lags_eto,variavel_Alvo)
+  x1_train, x1_test,y1_train, y1_test = get_train_test_sets(df, list,lags,Target,lags_Target)
    # Create the parameter grid based on the results of random search 
   param_grid = {
         'min_child_weight': [1, 5, 10],
@@ -764,36 +780,53 @@ def gridSearchXgbs(df,parametros,variavel_Alvo):
   print('---------------------------------------------------------------------------------')
   return tb
 
-def gridSearch_models(df, lista,lags,Eto,lags_eto,variavel_Alvo):
-  models = {
-    'DecisionTreeRegressor': DecisionTreeRegressor(),
-    'RandomForestRegressor': RandomForestRegressor(),
-    'XGBRegressor': XGBRegressor()
-  }
+
+  
+  
+  
+def get_param(model_name, params):
+    """
+    Not the most sufficient way.
+    I recommend to have params and models
+    in OrderedDict() instead.
+    """
+    for k, v in params.items():
+        # print(k," Valor de k")
+        # print(v," Valor de V")
+        mn = str(model_name).upper().split('_')
+        # print(mn," Valor de mn")
+        for k_ in str(k).upper().split('_'):
+            # print(k_," Valor de mn")
+            if k_ in mn:
+                # print(k_," Valor de k2")
+                # print(v,"Final v")
+                return v
 
 
-  params= {
-    'DecisionTreeRegressor':{"splitter":["best"],
-            "max_depth" : [1,3,5,8],
-            "min_samples_leaf":[1,2,3,4],
-            'n_estimators': [100, 500, 1000]
-            },
-    'RandomForestRegressor':  {
-      "max_depth" : [1,3,5,8],
-     "min_samples_leaf":[1,2,3,4],
-     'min_samples_split': [8, 10, 12],
-      'n_estimators': [100, 500, 1000]
-      },
+def models_gridSearchCV(models, params, scorer, X, y):
+    all_results = dict.fromkeys(models.keys(), [])
 
-    'XGBRegressor':{
-        'gamma': [0.5, 1, 1.5, 2, 5],
-        'subsample': [0.6, 0.8, 1.0],
-        'max_depth': [3, 4, 5],
-        }
+    best_model = {'model_name': None,
+                  'best_estimator': None,
+                  'best_params': None,
+                  'best_score': -99999}
+    for model_name, model in models.items():
+        print("Processing {} ...".format(model_name))
+       
+        param = get_param(model_name, params)
+        if param is None:
+            continue
 
-    }
 
-  for name in models.keys():
-    est = models[name]
-    est_params = params[name]
- return best_model,bestparamet
+        clf = GridSearchCV(model, param, scoring=scorer)
+        clf.fit(X, y)
+        
+        all_results[model_name] =clf.cv_results_
+  
+        if clf.best_score_ > best_model.get('best_score'):
+            best_model['model_name'] = model_name
+            best_model['best_estimator'] = clf.best_estimator_
+            best_model['best_params'] = clf.best_params_
+            best_model['best_score'] = clf.best_score_
+
+    return best_model, all_results
