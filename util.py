@@ -3,9 +3,13 @@ import pandas as pd
 import math
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error
-from sklearn.metrics import f1_score
+from sklearn.feature_selection import SelectKBest
+from sklearn.feature_selection import f_regression
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import ExtraTreesRegressor
 from xgboost import XGBRegressor
+from math import nan
+from numpy import set_printoptions
 from matplotlib import pyplot
 from sklearn.model_selection import RandomizedSearchCV
 from pprint import pprint
@@ -80,7 +84,7 @@ def column_Filter(df,steps_ahead,Target):
   aux3.append(list_Target)
   aux3.append(lags_list_Target)
  
-
+  print("oi->><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
   return aux3
  
 def resource_ranking(df,lista_filtrada3,Target,data_Itreino='1993-01-01',data_Ftreino='2011-12-31') :
@@ -108,7 +112,7 @@ def resource_ranking(df,lista_filtrada3,Target,data_Itreino='1993-01-01',data_Ft
   df=df.iloc[tab[1]:,:]
   array2 = df[Target]
   X =array1[:,0:len(tab[0].columns)]
-  Y = array2
+  Y = array2.values.ravel()
   
   
   # feature extraction
@@ -153,7 +157,8 @@ def resource_ranking(df,lista_filtrada3,Target,data_Itreino='1993-01-01',data_Ft
  
   return  {'Correlation': leg_seq,'feature_importances': leg_seq2}
     
-def standardize_variable_list (resource_ranking,q,Target):
+def standardize_variable_list(resource_ranking,q,Target):
+  print(Target,"\n \n standardize_variable_list FUNCAO")
   """ Select the number of ranked attributes and standardize the format of attributes in lists
     
         Args:
@@ -170,6 +175,7 @@ def standardize_variable_list (resource_ranking,q,Target):
                  aux3[3]:lags_list_Target ( List of lags for target variable)
             
   """
+  # print("\n\nEntrei na standardized_variable_list")
   b=[]
   lags=[]
   aux3=[]
@@ -238,7 +244,9 @@ def get_train_test_sets(df, list,lags,Target,lags_Target,data_Itest= '2013-01-01
   
   
   tabela = get_x2(df, list,lags,Target,lags_Target)
+  
   train_selection = (tabela[0]['Data'] >= data_Itreino) & (tabela[0]['Data'] <= data_Ftreino)
+  print(train_selection,"\n train_selection ->>>>>>>>>>>>>\n")
   test_selection = (tabela[0]['Data'] >= data_Itest) & (tabela[0]['Data'] <= data_Ftest)
 
   x1_train = tabela[0][train_selection].drop("Data", axis=1)
@@ -251,7 +259,7 @@ def get_train_test_sets(df, list,lags,Target,lags_Target,data_Itest= '2013-01-01
   y1_train = y1_train[tabela[1]:]
  
            
-  return x1_train.values, x1_test.values,y1_train, y1_test
+  return x1_train, x1_test,y1_train, y1_test
 
 def get_x2(df,list,lags,Target,lags_Target):
   """ Keeps the "Data" index and returns a DataFrame object with shifted index values.
@@ -299,11 +307,13 @@ def get_x2(df,list,lags,Target,lags_Target):
         max_lag=(lags_Target[i])
       del list_aux2[len(list_aux2)-1]
       list_aux2.insert(0,nan)
-    dataX[((df[Target].iloc[:,0]).name)+("_t-")+str(lags_Target[i])]=list_aux2        
+    dataX[((df[Target].iloc[:,0]).name)+("_t-")+str(lags_Target[i])]=list_aux2    
+  # print(dataX,"\n DF dataX->>>>>>>>>>>>>>>>>>>>>>>>>>\n")
   return dataX,max_lag,list,lags,Target,lags_Target;
 
 
 def displace(df,variables_of_interest, Target,steps_ahead=30):
+  
   """ Keeps the "Data" index and returns a DataFrame object with index values ​​shifted by steps_ahead time units
     
         Args:
@@ -319,12 +329,22 @@ def displace(df,variables_of_interest, Target,steps_ahead=30):
             
  """
   ix = []
+  # print("\n displaceeed \n")
+  # print(df,"DFDFDFDF\n")
+
+  # print(variables_of_interest,"uxiliary_variablesauxiliary_variablesauxiliary_variables\n")
+  # print(Target,"forecasting_variableforecasting_variableforecasting_variable\n")
+  # print(steps_ahead,"steps_aheadsteps_aheadsteps_aheadsteps_ahead\n")
+
+  
   idx =  [i for i in np.arange(1, steps_ahead+1)]
   for i in range(len(variables_of_interest)):
     ix.append(idx)
-
+  # print(idx,"\n idx------------------>>>>\n")
   dataX = get_x2(df, variables_of_interest, ix, Target, idx)
-  return dataX
+  # print(dataX[0],"\n dataX Passei aqui------------------>>>>\n")
+  
+  return dataX[0]
 def get_column(df,Target):
   """ Keeps the "Data" index and returns a DataFrame object with shifted index values.
     
@@ -342,7 +362,7 @@ def get_column(df,Target):
   lista=[]
   list_Target=[]
   for column in (df.columns):
-    if column != 'Data':
+    if column != 'Data' and column !='Unnamed: 0':
       if column != Target:
          lista.append(column)
       elif column==Target:
@@ -484,7 +504,7 @@ def florestaAleatoria(df,list, lags, Target, lags_Target):
                 mode="expand", borderaxespad=0, ncol=3)
   pyplot.show()
     
-  return lista,lags,Eto,lags_eto,round(rmse,2),"RandomForestRegressor"
+  return list,lags,Target,lags_Target,"RandomForestRegressor"
 
 def florestasAleatorias(df,arvore_parametros,Target):
   """ Receives a list of lists with selected variables and corresponding steps forward returning error metrics for input lists
@@ -804,6 +824,8 @@ def get_param(model_name, params):
 
 
 def models_gridSearchCV(models, params, scorer, X, y):
+
+
     all_results = dict.fromkeys(models.keys(), [])
 
     best_model = {'model_name': None,
@@ -830,3 +852,41 @@ def models_gridSearchCV(models, params, scorer, X, y):
             best_model['best_score'] = clf.best_score_
 
     return best_model, all_results
+
+
+
+### TEST ###
+def models_default_gridSearchCV (models, params, scorer, X, y):
+  # X=x1_train.values
+  # y=y1_train.values.ravel()
+  print(X.shape,"X",y.shape,"Y")
+  # OrderedDict() is recommended here
+  # to maintain order between models and params 
+
+  models = {
+           'model_xgb': XGBRegressor(objective = "reg:squarederror"),
+            'model_dt': DecisionTreeRegressor(),
+            'model_rf': RandomForestRegressor(),
+            
+            }
+
+  params_xgb={
+                  'max_depth': [3, 4, 5,6,8],
+                }
+  params_dt = {
+      # 'splitter': ['best', 'random'],
+                  'max_depth': [1,3,5]}
+  params_rf = {
+                  "max_depth" : [2,4,8]}
+      
+
+  # OrderedDict() is recommended here
+  # to maintain order between models and params 
+  params = OrderedDict()
+  params['params_xgb']=params_xgb
+  params['params_dt']=params_dt
+  params['params_rf']=params_rf
+
+
+  models_gridSearchCV(models, params, scorer, X, y)
+  return  1
