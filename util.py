@@ -246,9 +246,9 @@ def get_train_test_sets(df, list,lags,Target,lags_Target,data_Itest= '2013-01-01
   tabela = get_x2(df, list,lags,Target,lags_Target)
   
   train_selection = (tabela[0]['Data'] >= data_Itreino) & (tabela[0]['Data'] <= data_Ftreino)
-  print(train_selection,"\n train_selection ->>>>>>>>>>>>>\n")
+  
   test_selection = (tabela[0]['Data'] >= data_Itest) & (tabela[0]['Data'] <= data_Ftest)
-
+ 
   x1_train = tabela[0][train_selection].drop("Data", axis=1)
   x1_test = tabela[0][test_selection].drop("Data", axis=1)
   
@@ -257,8 +257,8 @@ def get_train_test_sets(df, list,lags,Target,lags_Target,data_Itest= '2013-01-01
 
   x1_train = x1_train[tabela[1]:]
   y1_train = y1_train[tabela[1]:]
- 
-           
+  print(x1_train,"\n x1_train ->>>>>>>>>>>>>\n")
+  print(y1_test,"\n y1_test ->>>>>>>>>>>>>\n")        
   return x1_train, x1_test,y1_train, y1_test
 
 def get_x2(df,list,lags,Target,lags_Target):

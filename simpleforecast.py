@@ -4,7 +4,6 @@ import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.tree import DecisionTreeRegressor
 from xgboost import XGBRegressor
-from xgboost import XGBRegressor
 from collections import OrderedDict
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 import util
@@ -79,8 +78,8 @@ def model_selection(df,forecasting_variable,selected_variables, models=[RandomFo
                 selected_model = util.xgbs(df,[selected_variables,manual_list],forecasting_variable)
 
     return selected_model
-def finetunnig_models(df,selected_variables,score='neg_mean_squared_error',
-                        data_Itreino='1993-01-01',data_Ftreino='2011-12-31',models=0, params=0):
+def finetunnig_models(df,selected_variables,score='neg_mean_squared_error',models=False, params=False,
+                        data_Itreino='1993-01-01',data_Ftreino='2011-12-31'):
     """ Performs a grid search for the input model using the set of hyper parameters 
     
         Args:
@@ -132,9 +131,9 @@ def finetunnig_models(df,selected_variables,score='neg_mean_squared_error',
         # print(params["params_xgb"])
         
         best_model, all_results = util.models_gridSearchCV(models, params,score , x, y)
-        print("\n Passei no IF GridModels")
+        # print("\n Passei no IF GridModels")
     else:
-        print("\n Passei no else GridModels")
+        # print("\n Passei no else GridModels")
         best_model, all_results = util.models_gridSearchCV(models, params, score, x, y)
 
     
@@ -143,13 +142,11 @@ def finetunnig_models(df,selected_variables,score='neg_mean_squared_error',
             'best_params':best_model['best_params'],
             'model_name':best_model['model_name'],
             "all_results":all_results}
-def fit(df,forecasting_variable,q,auxiliary_variables=0,
-            steps_ahead=1,models=[RandomForestRegressor],
-            variable_selection_type = 'Correlation',
-            manual_list = [],
-            variable_lag_selection=False, hyperparameters=[],max_lags=30,data_Itest= '2013-01-01',
-            data_Ftest= '2013-12-31',data_Itreino='1993-01-01',data_Ftreino='2011-12-31',score='neg_mean_squared_error'):
-
+def fit(df,forecasting_variable,q,steps_ahead=1,
+            variable_selection_type = 'Correlation',max_lags=30,auxiliary_variables=False,
+            models=False,hyperparameters=False,data_Itest= '2013-01-01',
+            data_Ftest= '2013-12-31',data_Itreino='1993-01-01',data_Ftreino='2011-12-31',score='neg_mean_squared_error', metrics=['mse'],manual_list = []):
+   # (data_Patricia_Eto,"Eto",10,7,0,'Correlation',max_lags=30)
     """ Recieves multivariate time series data and returns a model
 
     Args:
@@ -164,29 +161,53 @@ def fit(df,forecasting_variable,q,auxiliary_variables=0,
 
     Return: 
         A fitted model for the time series
+         selected_variables[0]:list of variables to use to aid prediction
+         selected_variables[1]:lags of selected variables for prediction
+         selected_variables[2]:variables to be forecasted
+         selected_variables[3]:target variable lags
+         tested:list with the metric name and corresponding error.Can be "mae" or "mse" or both
+         best_model["model_name"]:name of best model returned by default grid search
     
    """
-    # Collects the name of the dataframe columns if the user does not specify
-    aux=util.get_column(df,forecasting_variable)
-    print(aux,"\n Colunas \n")
-    # Generates a new data frame with max_lags
-    
-    dff=util.displace(df,aux["variable_list"],aux["Target"],max_lags)
-    
+    # # Collects the name of the dataframe columns if the user does not specify
+    # aux=util.get_column(df,forecasting_variable)
+    # print(aux,"\n Colunas \n")
+    # # Generates a new data frame with max_lags
+    # dff=util.displace(df,aux["variable_list"],aux["Target"],max_lags)
+    if auxiliary_variables!=[]:
+       
+        # Generates a new data frame with max_lags and indicated variables
+    #    print("\nEstano IF\n")
+       aux={}
+       aux['variable_list'] = auxiliary_variables
+       aux['Target']=[forecasting_variable]
+       dff=util.displace(df,aux["variable_list"],aux["Target"],max_lags)
+       print(aux,"\n Colunas <> \n")
+    #    dff=util.displace(df,auxiliary_variables,forecasting_variable,max_lags)
+    #    print(dff,"displeced---------------------->>>>>>>>>>>>>>>>>>>>")
+    else:
+        # print("\nEstano else\n")
+        # Collects the name of the dataframe columns if the user does not specify
+        aux=util.get_column(df,forecasting_variable)
+        # Generates a new data frame with max_lags and all variables 
+        dff=util.displace(df,aux["variable_list"],aux["Target"],max_lags)
+        print(aux,"\n Colunas >< \n")
+
+
     # Performs variable selection 
     selected_variables=variable_selection(df,aux["variable_list"],aux["Target"],q,steps_ahead,variable_selection_type,max_lags,
     data_Itreino,data_Ftreino)
     # Performs model selection ()
         
         
-    best_model=finetunnig_models(df,selected_variables,score,data_Itreino
-    ,data_Ftreino,models=0, params=0)
+    best_model=finetunnig_models(df,selected_variables,score,models,hyperparameters,data_Itreino
+    ,data_Ftreino)
     # print("\n\nPAssei best model")
         
         # selected_model = model_selection(df,forecasting_variable,selected_variables, models=[RandomForestRegressor], manual_list = [],
         #          hyperparameters=[])
     
-    tested=test(df,best_model['best_model'], selected_variables,data_Itest,data_Ftest, metrics=['mse',"mae"])
+    tested=test(df,best_model['best_model'], selected_variables,data_Itest,data_Ftest, metrics)
     
     print("\n\nPAssei tested")
     return selected_variables[0],selected_variables[1],selected_variables[2],selected_variables[3],tested,best_model["model_name"]
