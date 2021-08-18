@@ -35,9 +35,9 @@ params_rf = {
                         "max_depth" : [1,3,5]}
 
 params = OrderedDict()
-params['params_xgb']=params_xgb
+# params['params_xgb']=params_xgb
 params['params_dt']=params_dt
-params['params_rf']=params_rf
+# params['params_rf']=params_rf
         
 
 
@@ -47,27 +47,30 @@ params['params_rf']=params_rf
 
 
 
-
-resultado = fit(data_Patricia_Eto,"Eto",10,1,'Correlation',30,auxiliary_variables,metrics=['mae','mse'],
-data_Itest= '2013-01-01',data_Ftest= '2013-12-31',data_Itreino='1993-01-01',data_Ftreino='2011-12-31'
-,models=models,hyperparameters=params
-)
-
-print(resultado)
-
-
-# path= 'C:/Users/Ray/Documents/GitHub/'
-# data_INMET_Eto = pd.read_csv(path+"SimpleForecast/data_Ray.csv") 
-# data_INMET_Eto=data_INMET_Eto.drop("radiacao",axis=1)
-# print(data_INMET_Eto)
-
-# auxiliary_variables=[]
-
-# resultado = fit(data_INMET_Eto,"temp_media",10,1,'Correlation',30,auxiliary_variables,metrics=['mae'],data_Itest= '2019-01-01',
-#             data_Ftest= '2019-12-31',data_Itreino='2018-01-01',data_Ftreino='2018-12-31')
-#         # fit(df,forecasting_variable,q,steps_ahead=1,
-#         #     variable_selection_type = 'Correlation',max_lags=30,auxiliary_variables=False,
-#         #     variable_lag_selection=False,data_Itest= '2013-01-01',
-#         #     data_Ftest= '2013-12-31',data_Itreino='1993-01-01',data_Ftreino='2011-12-31',score='neg_mean_squared_error', metrics=['mse'],models=[RandomForestRegressor],manual_list = [],hyperparameters=[])
+# resultado = fit(data_Patricia_Eto,"Eto",10,7,'Correlation',30,auxiliary_variables,metrics=['mse'],
+# data_Itest= '2013-01-01',data_Ftest= '2013-12-31',data_Itreino='1993-01-01',data_Ftreino='2011-12-31'
+# # ,models=models,hyperparameters=params
+# )
+resultado = fit(data_Patricia_Eto,"Eto",10,10,'feature_importances',30,auxiliary_variables,
+models,params, '2013-01-01','2013-12-31','1993-01-01','2011-12-31',
+['mae','mse'])
 
 # print(resultado)
+
+
+path= 'C:/Users/Ray/Documents/GitHub/'
+data_INMET_Eto = pd.read_csv(path+"SimpleForecast/data_Ray.csv") 
+data_INMET_Eto=data_INMET_Eto.drop("Eto",axis=1)
+data_INMET_Eto=data_INMET_Eto.drop("radiacao",axis=1)
+print(data_INMET_Eto)
+
+auxiliary_variables=["vento","temp_max","temp_min","umi_max"]
+
+
+resultado = fit(data_INMET_Eto,"vento",10,7,'feature_importances',30,auxiliary_variables,
+False,False,'2019-01-01','2019-12-31','2018-01-01','2019-12-31',
+['mae','mse'])
+
+
+
+print(resultado,"Novo \n")

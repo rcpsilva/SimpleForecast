@@ -12,6 +12,7 @@ import util
 def variable_selection(df,auxiliary_variables,forecasting_variable,q,steps_ahead=1,
        variable_selection_type = 'Correlation',max_lags=30,data_Itreino='1993-01-01',
        data_Ftreino='2011-12-31'):
+       
     """ Selects the best lags an the best exogenous variables for the given data
       Args:
              df: Data frame with multivariate time series data
@@ -29,6 +30,7 @@ def variable_selection(df,auxiliary_variables,forecasting_variable,q,steps_ahead
    
     # print(steps_ahead,"\n Step ahed \n")
     # print(auxiliary_variables,"\nAux variaveis\n")
+    
     if auxiliary_variables!=[]:
        
         # Generates a new data frame with max_lags and indicated variables
@@ -55,31 +57,32 @@ def variable_selection(df,auxiliary_variables,forecasting_variable,q,steps_ahead
     return standardized_variable_list
 
 
-def model_selection(df,forecasting_variable,selected_variables, models=[RandomForestRegressor],
-             manual_list = [],  hyperparameters=[]):
-    '''
-            Return the results of the model given
-    '''
-    for i in range (len(models)):
-        if models[i] == RandomForestRegressor :
-            if hyperparameters[i] !=[]:
-                selected_model = util.florestasAleatorias(df,[selected_variables,manual_list],forecasting_variable,hyperparameters[i])
-            else:
-                selected_model = util.florestasAleatorias(df,[selected_variables,manual_list],forecasting_variable)
-        elif models[i] ==DecisionTreeRegressor:
-            if hyperparameters[i] !=[]:
-                selected_model = util.arvores(df,[selected_variables,manual_list],forecasting_variable,hyperparameters[i])
-            else:
-                selected_model = util.arvores(df,[selected_variables,manual_list],forecasting_variable)
-        elif models[i]==XGBRegressor:
-            if hyperparameters[i] !=[]:
-                selected_model = util.xgbs(df,[selected_variables,manual_list],forecasting_variable,hyperparameters[i])
-            else:
-                selected_model = util.xgbs(df,[selected_variables,manual_list],forecasting_variable)
+# def model_selection(df,forecasting_variable,selected_variables, models=[RandomForestRegressor],
+#              manual_list = [],  hyperparameters=[]):
+#     '''
+#             Return the results of the model given
+#     '''
+#     for i in range (len(models)):
+#         if models[i] == RandomForestRegressor :
+#             if hyperparameters[i] !=[]:
+#                 selected_model = util.florestasAleatorias(df,[selected_variables,manual_list],forecasting_variable,hyperparameters[i])
+#             else:
+#                 selected_model = util.florestasAleatorias(df,[selected_variables,manual_list],forecasting_variable)
+#         elif models[i] ==DecisionTreeRegressor:
+#             if hyperparameters[i] !=[]:
+#                 selected_model = util.arvores(df,[selected_variables,manual_list],forecasting_variable,hyperparameters[i])
+#             else:
+#                 selected_model = util.arvores(df,[selected_variables,manual_list],forecasting_variable)
+#         elif models[i]==XGBRegressor:
+#             if hyperparameters[i] !=[]:
+#                 selected_model = util.xgbs(df,[selected_variables,manual_list],forecasting_variable,hyperparameters[i])
+#             else:
+#                 selected_model = util.xgbs(df,[selected_variables,manual_list],forecasting_variable)
 
-    return selected_model
-def finetunnig_models(df,selected_variables,score='neg_mean_squared_error',models=False, params=False,
-                        data_Itreino='1993-01-01',data_Ftreino='2011-12-31'):
+#     return selected_model
+def finetunnig_models(df,selected_variables,data_Itreino,data_Ftreino,data_Itest,data_Ftest,
+score='neg_mean_squared_error',models=False, params=False
+                        ):
     """ Performs a grid search for the input model using the set of hyper parameters 
     
         Args:
@@ -97,7 +100,11 @@ def finetunnig_models(df,selected_variables,score='neg_mean_squared_error',model
     # for i in range(len(selected_variables)):
 
     print(len(selected_variables), "\n\nselected_variables")
-    x1_train, x1_test,y1_train, y1_test= util.get_train_test_sets(df,selected_variables[0],selected_variables[1],selected_variables[2],selected_variables[3],data_Itreino,data_Ftreino)
+    x1_train, x1_test,y1_train, y1_test= util.get_train_test_sets(df,
+    selected_variables[0],selected_variables[1],selected_variables[2],selected_variables[3],
+    data_Itest,data_Ftest,data_Itreino,data_Ftreino)
+
+    
     ### TEST ###
 
     x=x1_train.values
@@ -131,9 +138,9 @@ def finetunnig_models(df,selected_variables,score='neg_mean_squared_error',model
         # print(params["params_xgb"])
         
         best_model, all_results = util.models_gridSearchCV(models, params,score , x, y)
-        # print("\n Passei no IF GridModels")
+        print("\n Passei no IF GridModels")
     else:
-        # print("\n Passei no else GridModels")
+        print("\n Passei no else GridModels")
         best_model, all_results = util.models_gridSearchCV(models, params, score, x, y)
 
     
@@ -145,7 +152,7 @@ def finetunnig_models(df,selected_variables,score='neg_mean_squared_error',model
 def fit(df,forecasting_variable,q,steps_ahead=1,
             variable_selection_type = 'Correlation',max_lags=30,auxiliary_variables=False,
             models=False,hyperparameters=False,data_Itest= '2013-01-01',
-            data_Ftest= '2013-12-31',data_Itreino='1993-01-01',data_Ftreino='2011-12-31',score='neg_mean_squared_error', metrics=['mse'],manual_list = []):
+            data_Ftest= '2013-12-31',data_Itreino='1993-01-01',data_Ftreino='2011-12-31',metrics=['mse'],score='neg_mean_squared_error',manual_list = []):
    # (data_Patricia_Eto,"Eto",10,7,0,'Correlation',max_lags=30)
     """ Recieves multivariate time series data and returns a model
 
@@ -174,6 +181,7 @@ def fit(df,forecasting_variable,q,steps_ahead=1,
     # print(aux,"\n Colunas \n")
     # # Generates a new data frame with max_lags
     # dff=util.displace(df,aux["variable_list"],aux["Target"],max_lags)
+
     if auxiliary_variables!=[]:
        
         # Generates a new data frame with max_lags and indicated variables
@@ -193,29 +201,31 @@ def fit(df,forecasting_variable,q,steps_ahead=1,
         dff=util.displace(df,aux["variable_list"],aux["Target"],max_lags)
         print(aux,"\n Colunas >< \n")
 
-
+    print(data_Itreino,"DATA TREINO 1\n\n\n")
     # Performs variable selection 
-    selected_variables=variable_selection(df,aux["variable_list"],aux["Target"],q,steps_ahead,variable_selection_type,max_lags,
+    selected_variables=variable_selection(df,aux["variable_list"],aux["Target"],q,
+    steps_ahead,variable_selection_type,max_lags,
     data_Itreino,data_Ftreino)
     # Performs model selection ()
         
-        
-    best_model=finetunnig_models(df,selected_variables,score,models,hyperparameters,data_Itreino
-    ,data_Ftreino)
+    print(data_Itreino,"DATA TREINO2\n\n\n")    
+    best_model=finetunnig_models(df,selected_variables,data_Itreino
+    ,data_Ftreino,data_Itest
+    ,data_Ftest,score,models,hyperparameters)
     # print("\n\nPAssei best model")
         
         # selected_model = model_selection(df,forecasting_variable,selected_variables, models=[RandomForestRegressor], manual_list = [],
         #          hyperparameters=[])
-    
-    tested=test(df,best_model['best_model'], selected_variables,data_Itest,data_Ftest, metrics)
-    
+    print(data_Itreino,"DATA TREINO 3\n\n\n")
+    tested=test(df,best_model['best_model'], selected_variables,data_Itest,data_Ftest,data_Itreino,data_Ftreino, metrics)
+    print(data_Itreino,"DATA TREINO\n\n\n")
     print("\n\nPAssei tested")
     return selected_variables[0],selected_variables[1],selected_variables[2],selected_variables[3],tested,best_model["model_name"]
-def test(df,model, selected_variables,data_Itest,data_Ftest, metrics=['mse']):
+def test(df,model, selected_variables,data_Itest,data_Ftest,data_Itreino,data_Ftreino, metrics=['mse']):
  """ Evaluates a model given a test set
     
  """
- x1_train, x1_test,y1_train, y1_test= util.get_train_test_sets(df,selected_variables[0],selected_variables[1],selected_variables[2],selected_variables[3],data_Itest,data_Ftest)
+ x1_train, x1_test,y1_train, y1_test= util.get_train_test_sets(df,selected_variables[0],selected_variables[1],selected_variables[2],selected_variables[3],data_Itest,data_Ftest,data_Itreino,data_Ftreino)
  erro=[]
  mae_erro=[]
  y1_test=y1_test.values.ravel()

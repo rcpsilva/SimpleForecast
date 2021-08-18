@@ -244,7 +244,8 @@ def get_train_test_sets(df, list,lags,Target,lags_Target,data_Itest= '2013-01-01
   
   
   tabela = get_x2(df, list,lags,Target,lags_Target)
-  
+  print(data_Itest,"\n data_Itest ->>>>>>>>>>>>>\n")
+  print(data_Ftest,"\n data_Ftest ->>>>>>>>>>>>>\n")     
   train_selection = (tabela[0]['Data'] >= data_Itreino) & (tabela[0]['Data'] <= data_Ftreino)
   
   test_selection = (tabela[0]['Data'] >= data_Itest) & (tabela[0]['Data'] <= data_Ftest)
